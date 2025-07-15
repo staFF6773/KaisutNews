@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Nueva Noticia</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="min-h-screen text-gray-200">
+  <div class="max-w-lg mx-auto py-12 px-4">
+    <h1 class="text-3xl font-extrabold mb-8 text-center tracking-tight title-gradient">Crear nueva noticia</h1>
+    <form action="/new" method="POST" class="space-y-6">
+      <div>
+        <label for="title" class="block mb-2 font-semibold text-gray-200">Título:</label>
+        <input type="text" id="title" name="title" required class="input-dark w-full" placeholder="Título de la noticia">
+      </div>
+      <div>
+        <label for="content" class="block mb-2 font-semibold text-gray-200">Contenido:</label>
+        <textarea id="content" name="content" rows="5" required class="input-dark w-full" placeholder="Escribe la noticia..."></textarea>
+      </div>
+      <div>
+        <label for="image" class="block mb-2 font-semibold text-gray-200">URL de imagen (opcional):</label>
+        <input type="text" id="image" name="image" class="input-dark w-full" placeholder="https://...">
+      </div>
+      <button type="submit" class="btn-main w-full py-3 rounded-lg font-bold shadow text-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-900">Guardar</button>
+    </form>
+    <div class="mt-8 text-center">
+      <a href="/" class="btn-main inline-block px-5 py-2 rounded-lg font-semibold shadow transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-900">Volver a la lista</a>
+    </div>
+  </div>
+  <%- include('../footer.ejs') %>
+</body>
+</html> 
