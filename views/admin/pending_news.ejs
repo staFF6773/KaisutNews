@@ -1,0 +1,33 @@
+<%- include('../nav') %>
+<h2>Noticias pendientes de aprobación</h2>
+<table>
+  <tr>
+    <th>Título</th>
+    <th>Autor</th>
+    <th>Fecha</th>
+    <th>Acciones</th>
+  </tr>
+  <% news.forEach(noticia => { %>
+    <tr>
+      <td><%= noticia.title %></td>
+      <td><%= noticia.author %></td>
+      <td><%= new Date(noticia.date).toLocaleString() %></td>
+      <td>
+        <form method="POST" action="/admin/pending-news/<%= noticia.id %>/approve" style="display:inline;">
+          <button type="submit">Aprobar</button>
+        </form>
+        <form method="POST" action="/admin/pending-news/<%= noticia.id %>/reject" style="display:inline;">
+          <button type="submit">Rechazar</button>
+        </form>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="4"><strong>Contenido:</strong> <%= noticia.content %>
+        <% if (noticia.image) { %>
+          <br><img src="<%= noticia.image %>" alt="Imagen" style="max-width:200px;">
+        <% } %>
+      </td>
+    </tr>
+  <% }) %>
+</table>
+<%- include('../footer') %>

@@ -10,6 +10,14 @@
   <%- include('../nav.ejs') %>
   <div class="max-w-2xl mx-auto py-12 px-4">
     <h1 class="text-3xl font-extrabold mb-2 title-gradient"><%= anime.title %></h1>
+    <% if (anime.author) { %>
+      <div class="flex items-center gap-2 text-sm text-blue-300 mb-2">
+        <% if (anime.author_avatar) { %>
+          <img src="/avatars/<%= anime.author_avatar %>" alt="Avatar autor" class="w-8 h-8 rounded-full object-cover border border-blue-400">
+        <% } %>
+        <span>Por <%= anime.author %></span>
+      </div>
+    <% } %>
     <div class="text-xs text-gray-500 mb-6"><%= anime.date %></div>
     <% if (anime.image) { %>
       <img src="<%= anime.image %>" alt="Imagen de la noticia" class="mb-6 rounded-lg max-w-full mx-auto" style="max-height:350px;">
@@ -18,7 +26,7 @@
     <div class="text-center">
       <a href="/" class="btn-main inline-block px-5 py-2 rounded-lg font-semibold shadow transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-900">Volver a la lista</a>
     </div>
-    <% if (typeof user !== 'undefined' && user.isAdmin) { %>
+    <% if (user && user.isAdmin) { %>
       <form method="POST" action="/news/<%= anime.id %>/delete" onsubmit="return confirm('¿Seguro que quieres borrar esta noticia?');">
         <button type="submit" class="btn-main mt-4 px-4 py-2 rounded-md font-semibold">Borrar noticia</button>
       </form>

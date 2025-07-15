@@ -3,7 +3,11 @@
     <a href="/" class="font-bold text-xl title-gradient">KaisutNews</a>
     <ul class="flex gap-4 items-center">
       <li><a href="/" class="hover:text-blue-400 transition-colors">Inicio</a></li>
-      <li><a href="/new" class="hover:text-blue-400 transition-colors">Nueva noticia</a></li>
+      <% if (user && user.isAdmin) { %>
+        <li><a href="/new" class="hover:text-blue-400 transition-colors">Nueva noticia</a></li>
+      <% } else if (user) { %>
+        <li><a href="/submit" class="hover:text-blue-400 transition-colors">Subir noticia de comunidad</a></li>
+      <% } %>
     </ul>
   </div>
   <div class="relative flex items-center gap-4">

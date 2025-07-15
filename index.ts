@@ -67,7 +67,14 @@ const db = new sqlite3.Database(join(dbDir, "anime_news.db"), (err) => {
     content TEXT NOT NULL,
     date TEXT NOT NULL,
     image TEXT
-  )`);
+  )`, () => {
+    // Asegura que la columna author_id exista
+    db.all("PRAGMA table_info(news)", (err, columns) => {
+      if (columns && Array.isArray(columns) && !columns.some((col: any) => col.name === 'author_id')) {
+        db.run("ALTER TABLE news ADD COLUMN author_id INTEGER");
+      }
+    });
+  });
   // Crear tabla de usuarios si no existe
   // username es único y requerido
   // password_hash es requerido
