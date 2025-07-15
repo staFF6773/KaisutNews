@@ -2,6 +2,7 @@ import { Router } from "express";
 import { join } from "path";
 import sqlite3 from "sqlite3";
 import { requireAuth } from "./auth.router";
+import { requireAdmin } from "./auth.router";
 
 const router = Router();
 
@@ -16,13 +17,13 @@ router.get("/", (req, res) => {
   });
 });
 
-// Formulario para nueva noticia
-router.get("/new", requireAuth, (req, res) => {
+// Formulario para nueva noticia (solo admin)
+router.get("/new", requireAdmin, (req, res) => {
   res.render("anime/new");
 });
 
-// Guardar nueva noticia
-router.post("/new", requireAuth, (req, res) => {
+// Guardar nueva noticia (solo admin)
+router.post("/new", requireAdmin, (req, res) => {
   const { title, content, image } = req.body;
   const date = new Date().toISOString();
   db.run(
@@ -42,6 +43,15 @@ router.get("/news/:id", (req, res) => {
     if (err) return res.status(500).send("Error en la base de datos");
     if (!noticia) return res.status(404).send("Noticia no encontrada");
     res.render("anime/detail", { anime: noticia });
+  });
+});
+
+// Borrar noticia (solo admin)
+router.post("/news/:id/delete", requireAdmin, (req, res) => {
+  const { id } = req.params;
+  db.run("DELETE FROM news WHERE id = ?", [id], (err) => {
+    if (err) return res.status(500).send("Error al borrar la noticia");
+    res.redirect("/");
   });
 });
 
