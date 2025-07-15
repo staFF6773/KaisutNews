@@ -11,6 +11,7 @@ const router = Router();
 declare module 'express-session' {
   interface SessionData {
     userId?: number;
+    isAdmin?: boolean;
   }
 }
 
@@ -19,6 +20,7 @@ interface User {
   id: number;
   username: string;
   password_hash: string;
+  is_admin: number;
 }
 
 // Middleware para proteger rutas
@@ -36,6 +38,15 @@ function redirectIfAuthenticated(req: Request, res: Response, next: NextFunction
     return res.redirect("/");
   }
   next();
+}
+
+// Middleware para proteger rutas solo para administradores
+export function requireAdmin(req: Request, res: Response, next: NextFunction) {
+  if (req.session && req.session.isAdmin) {
+    next();
+  } else {
+    res.status(403).send("Acceso solo para administradores");
+  }
 }
 
 // Registro
@@ -84,6 +95,7 @@ router.post("/login", redirectIfAuthenticated, (req, res) => {
     bcrypt.compare(password, user.password_hash, (err, result) => {
       if (result) {
         req.session.userId = user.id;
+        req.session.isAdmin = !!user.is_admin;
         res.redirect("/");
       } else {
         res.render("auth/login", { error: "Credenciales inválidas." });
@@ -96,6 +108,26 @@ router.post("/login", redirectIfAuthenticated, (req, res) => {
 router.post("/logout", (req, res) => {
   req.session.destroy(() => {
     res.redirect("/login");
+  });
+});
+
+// Listar usuarios (solo admin)
+router.get("/admin/users", requireAdmin, (req, res) => {
+  db.all("SELECT id, username, is_admin FROM users ORDER BY id", (err, users) => {
+    if (err) return res.status(500).send("Error en la base de datos");
+    res.render("admin/users", { users });
+  });
+});
+
+// Borrar usuario (solo admin, no puede borrarse a sí mismo)
+router.post("/admin/users/:id/delete", requireAdmin, (req, res) => {
+  const userId = parseInt(req.params.id, 10);
+  if (userId === req.session.userId) {
+    return res.status(400).send("No puedes borrarte a ti mismo.");
+  }
+  db.run("DELETE FROM users WHERE id = ?", [userId], (err) => {
+    if (err) return res.status(500).send("Error al borrar usuario");
+    res.redirect("/admin/users");
   });
 });
 
