@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { join } from "path";
 import sqlite3 from "sqlite3";
+import { requireAuth } from "./auth.router";
 
 const router = Router();
 
@@ -16,12 +17,12 @@ router.get("/", (req, res) => {
 });
 
 // Formulario para nueva noticia
-router.get("/new", (req, res) => {
+router.get("/new", requireAuth, (req, res) => {
   res.render("anime/new");
 });
 
 // Guardar nueva noticia
-router.post("/new", (req, res) => {
+router.post("/new", requireAuth, (req, res) => {
   const { title, content, image } = req.body;
   const date = new Date().toISOString();
   db.run(
