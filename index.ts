@@ -27,6 +27,15 @@ app.use(session({
   cookie: { httpOnly: true }
 }));
 
+// Middleware para exponer el usuario actual a las vistas EJS
+app.use((req, res, next) => {
+  res.locals.user = {
+    id: req.session.userId,
+    isAdmin: req.session.isAdmin
+  };
+  next();
+});
+
 // Rutas de autenticación
 app.use(authRouter);
 
@@ -57,7 +66,8 @@ const db = new sqlite3.Database(join(dbDir, "anime_news.db"), (err) => {
   db.run(`CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL
+    password_hash TEXT NOT NULL,
+    is_admin INTEGER NOT NULL DEFAULT 0
   )`);
 });
 
