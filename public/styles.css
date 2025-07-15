@@ -1,0 +1,88 @@
+/* 
+  Estilos principales para KaisutNews
+  -------------------------------------------------
+  Este archivo define la apariencia general de la aplicación, incluyendo
+  fuentes, fondos, botones, inputs y placeholders.
+*/
+
+/* 
+  Estilo base del body:
+  - Fuente moderna y legible.
+  - Fondo con gradiente oscuro para dar profundidad.
+*/
+body {
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  background: linear-gradient(120deg, #101117 0%, #181a20 100%);
+}
+
+/* 
+  .title-gradient:
+  - Aplica un gradiente de color al texto de los títulos.
+  - Utiliza background-clip y text-fill-color para lograr el efecto.
+*/
+.title-gradient {
+  background: linear-gradient(90deg, #7da2ff 0%, #23263a 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+}
+
+/* 
+  .btn-main:
+  - Botón principal con fondo oscuro y texto claro.
+  - Borde sutil y transición suave en hover/focus.
+*/
+.btn-main {
+  background: #23263a;
+  color: #e0e3ef;
+  border: 1px solid #23263a;
+  transition: background 0.2s, color 0.2s;
+}
+
+/* 
+  .btn-main:hover, .btn-main:focus:
+  - Cambia el color de fondo y texto al interactuar.
+  - Borde ligeramente más claro para resaltar el botón.
+*/
+.btn-main:hover, .btn-main:focus {
+  background: #181a20;
+  color: #7da2ff;
+  border-color: #2a2d3e;
+}
+
+/* 
+  .input-dark:
+  - Campos de entrada con fondo translúcido oscuro y texto claro.
+  - Bordes redondeados y padding cómodo.
+  - Transición para resaltar el borde y sombra al enfocar.
+*/
+.input-dark {
+  background: #181a20cc;
+  color: #e0e3ef;
+  border: 1px solid #23263a;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+
+/* 
+  .input-dark:focus:
+  - Borde azul y sombra suave para indicar el foco.
+  - Elimina el outline por defecto.
+*/
+.input-dark:focus {
+  border-color: #7da2ff;
+  outline: none;
+  box-shadow: 0 0 0 2px #7da2ff33;
+}
+
+/* 
+  ::placeholder:
+  - Color gris para los textos de ayuda en los inputs.
+  - Opacidad total para mejor visibilidad.
+*/
+::placeholder {
+  color: #5a5e6b;
+  opacity: 1;
+} 
