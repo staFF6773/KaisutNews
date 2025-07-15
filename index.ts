@@ -3,6 +3,8 @@ import { join } from "path";
 import sqlite3 from "sqlite3";
 import { existsSync, mkdirSync } from "fs";
 import newsRouter from "./news.router";
+import session from "express-session";
+import authRouter from "./auth.router";
 
 const app = express();
 const PORT = 3000;
@@ -16,6 +18,17 @@ app.set("views", join(process.cwd(), "views"));
 
 // Middleware para parsear formularios
 app.use(express.urlencoded({ extended: true }));
+
+// Configuración de sesión
+app.use(session({
+  secret: 'cambia_esto_por_un_secreto_muy_largo_y_unico',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { httpOnly: true }
+}));
+
+// Rutas de autenticación
+app.use(authRouter);
 
 // Usar el router de noticias
 app.use("/", newsRouter);
@@ -35,6 +48,16 @@ const db = new sqlite3.Database(join(dbDir, "anime_news.db"), (err) => {
     content TEXT NOT NULL,
     date TEXT NOT NULL,
     image TEXT
+  )`);
+  // Crear tabla de usuarios si no existe
+  // username es único y requerido
+  // password_hash es requerido
+  // id es autoincremental
+  // Puedes agregar más campos si lo deseas
+  db.run(`CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL
   )`);
 });
 
