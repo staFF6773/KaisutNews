@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Administrar usuarios</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="min-h-screen text-gray-200">
+  <div class="max-w-2xl mx-auto py-12 px-4">
+    <h1 class="text-4xl font-extrabold mb-8 text-center tracking-tight title-gradient">Administrar usuarios</h1>
+    <a href="/" class="btn-main mb-6 inline-block px-5 py-2 rounded-lg font-semibold shadow">Volver al inicio</a>
+    <table class="w-full text-left bg-[#181a20] rounded-xl shadow-lg">
+      <thead>
+        <tr>
+          <th class="py-2 px-4">ID</th>
+          <th class="py-2 px-4">Usuario</th>
+          <th class="py-2 px-4">Admin</th>
+          <th class="py-2 px-4">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% users.forEach(function(user) { %>
+          <tr class="border-b border-gray-800">
+            <td class="py-2 px-4"><%= user.id %></td>
+            <td class="py-2 px-4"><%= user.username %></td>
+            <td class="py-2 px-4"><%= user.is_admin ? 'Sí' : 'No' %></td>
+            <td class="py-2 px-4">
+              <% if (user.id !== locals.user.id) { %>
+                <form method="POST" action="/admin/users/<%= user.id %>/delete" style="display:inline" onsubmit="return confirm('¿Seguro que quieres borrar este usuario?');">
+                  <button type="submit" class="btn-main px-3 py-1 rounded font-semibold">Borrar</button>
+                </form>
+              <% } else { %>
+                <span class="text-gray-500 italic">(Tú)</span>
+              <% } %>
+            </td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+</body>
+</html> 
