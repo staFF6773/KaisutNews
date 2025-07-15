@@ -12,6 +12,7 @@ declare module 'express-session' {
   interface SessionData {
     userId?: number;
     isAdmin?: boolean;
+    avatar?: string; // Added avatar to session interface
   }
 }
 
@@ -21,6 +22,7 @@ interface User {
   username: string;
   password_hash: string;
   is_admin: number;
+  avatar?: string; // Added avatar to user interface
 }
 
 // Middleware para proteger rutas
@@ -42,11 +44,17 @@ function redirectIfAuthenticated(req: Request, res: Response, next: NextFunction
 
 // Middleware para proteger rutas solo para administradores
 export function requireAdmin(req: Request, res: Response, next: NextFunction) {
-  if (req.session && req.session.isAdmin) {
-    next();
-  } else {
-    res.status(403).send("Acceso solo para administradores");
+  if (!req.session || !req.session.userId) {
+    return res.status(403).send("Acceso solo para administradores");
   }
+  const db = new sqlite3.Database(join(process.cwd(), "db", "anime_news.db"));
+  db.get("SELECT is_admin FROM users WHERE id = ?", [req.session.userId], (err, row: any) => {
+    if (row && row.is_admin) {
+      next();
+    } else {
+      res.status(403).send("Acceso solo para administradores");
+    }
+  });
 }
 
 // Registro
@@ -55,15 +63,15 @@ router.get("/register", redirectIfAuthenticated, (req, res) => {
 });
 
 router.post("/register", redirectIfAuthenticated, (req, res) => {
-  const { username, password } = req.body;
+  const { username, password, avatar } = req.body;
   if (!username || !password) {
     return res.render("auth/register", { error: "Completa todos los campos." });
   }
   bcrypt.hash(password, 10, (err, hash) => {
     if (err) return res.render("auth/register", { error: "Error interno." });
     db.run(
-      "INSERT INTO users (username, password_hash) VALUES (?, ?)",
-      [username, hash],
+      "INSERT INTO users (username, password_hash, avatar) VALUES (?, ?, ?)",
+      [username, hash, avatar || "avatar1.webp"],
       function (err) {
         if (err) {
           if (err.message.includes("UNIQUE")) {
@@ -72,6 +80,7 @@ router.post("/register", redirectIfAuthenticated, (req, res) => {
           return res.render("auth/register", { error: "Error interno." });
         }
         req.session.userId = this.lastID;
+        req.session.avatar = avatar || "avatar1.webp";
         res.redirect("/");
       }
     );
@@ -88,14 +97,16 @@ router.post("/login", redirectIfAuthenticated, (req, res) => {
   if (!username || !password) {
     return res.render("auth/login", { error: "Completa todos los campos." });
   }
-  db.get("SELECT * FROM users WHERE username = ?", [username], (err, user: User) => {
-    if (err || !user) {
+  db.get("SELECT * FROM users WHERE username = ?", [username], (err, user) => {
+    const u = user as any;
+    if (err || !u) {
       return res.render("auth/login", { error: "Credenciales inválidas." });
     }
-    bcrypt.compare(password, user.password_hash, (err, result) => {
+    bcrypt.compare(password, u.password_hash, (err, result) => {
       if (result) {
-        req.session.userId = user.id;
-        req.session.isAdmin = !!user.is_admin;
+        req.session.userId = u.id;
+        req.session.isAdmin = !!u.is_admin;
+        req.session.avatar = u.avatar || "avatar1.webp";
         res.redirect("/");
       } else {
         res.render("auth/login", { error: "Credenciales inválidas." });
@@ -125,9 +136,16 @@ router.post("/admin/users/:id/delete", requireAdmin, (req, res) => {
   if (userId === req.session.userId) {
     return res.status(400).send("No puedes borrarte a ti mismo.");
   }
-  db.run("DELETE FROM users WHERE id = ?", [userId], (err) => {
-    if (err) return res.status(500).send("Error al borrar usuario");
-    res.redirect("/admin/users");
+  // Verifica si el usuario a borrar es admin
+  const db = new sqlite3.Database(join(process.cwd(), "db", "anime_news.db"));
+  db.get("SELECT is_admin FROM users WHERE id = ?", [userId], (err, row: any) => {
+    if (row && row.is_admin) {
+      return res.status(400).send("No puedes borrar a otro administrador.");
+    }
+    db.run("DELETE FROM users WHERE id = ?", [userId], (err) => {
+      if (err) return res.status(500).send("Error al borrar usuario");
+      res.redirect("/admin/users");
+    });
   });
 });
 

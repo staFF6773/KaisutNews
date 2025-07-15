@@ -1,0 +1,51 @@
+<nav class="glass flex justify-between items-center py-4 px-6 mb-8 border-b border-gray-800/60 rounded-b-xl shadow-lg mx-auto max-w-2xl">
+  <div class="flex items-center gap-8">
+    <a href="/" class="font-bold text-xl title-gradient">KaisutNews</a>
+    <ul class="flex gap-4 items-center">
+      <li><a href="/" class="hover:text-blue-400 transition-colors">Inicio</a></li>
+      <li><a href="/new" class="hover:text-blue-400 transition-colors">Nueva noticia</a></li>
+    </ul>
+  </div>
+  <div class="relative flex items-center gap-4">
+    <% if (!user) { %>
+      <a href="/login" class="btn-main px-4 py-1 rounded-full font-semibold shadow hover:bg-blue-900 transition-all">Iniciar sesión</a>
+    <% } else { %>
+      <button id="user-avatar-btn" type="button" class="w-10 h-10 rounded-full bg-blue-800 flex items-center justify-center text-lg font-bold text-white focus:outline-none focus:ring-2 focus:ring-blue-900 overflow-hidden">
+        <% if (user && user.avatar) { %>
+          <img src="/avatars/<%= user.avatar %>" alt="Avatar" class="w-10 h-10 object-cover rounded-full">
+        <% } else { %>
+          <%= user && user.username ? user.username.charAt(0).toUpperCase() : '?' %>
+        <% } %>
+      </button>
+      <div id="user-modal" class="hidden absolute right-0 mt-16 w-44 bg-[#181a20] border border-gray-800 rounded-xl shadow-lg py-2 z-50">
+        <div class="px-4 py-2 text-gray-300 font-semibold border-b border-gray-700">
+          <%= user && user.username ? user.username : '' %>
+        </div>
+        <% if (user && user.isAdmin) { %>
+          <a href="/admin/users" class="block px-4 py-2 text-gray-200 hover:bg-blue-900 rounded transition">Admin</a>
+        <% } %>
+        <form action="/logout" method="POST" class="m-0">
+          <button type="submit" class="w-full text-left px-4 py-2 text-gray-200 hover:bg-blue-900 rounded transition bg-transparent border-none cursor-pointer">Salir</button>
+        </form>
+      </div>
+      <script>
+        const btn = document.getElementById('user-avatar-btn');
+        const modal = document.getElementById('user-modal');
+        if(btn && modal) {
+          btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            modal.classList.toggle('hidden');
+          });
+          document.addEventListener('click', function(e) {
+            if (!modal.classList.contains('hidden')) {
+              modal.classList.add('hidden');
+            }
+          });
+          modal.addEventListener('click', function(e) {
+            e.stopPropagation();
+          });
+        }
+      </script>
+    <% } %>
+  </div>
+</nav> 

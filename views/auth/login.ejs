@@ -6,8 +6,9 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="/styles.css">
 </head>
-<body class="min-h-screen text-gray-200 flex items-center justify-center">
-  <div class="w-full max-w-md bg-[#181a20] rounded-2xl shadow-lg p-8 mt-12">
+<body class="min-h-screen text-gray-200">
+  <%- include('../nav.ejs') %>
+  <div class="mt-24 w-full max-w-md mx-auto">
     <h1 class="text-3xl font-extrabold mb-6 text-center tracking-tight title-gradient">Iniciar sesión</h1>
     <% if (error) { %>
       <div class="error bg-red-900/80 text-red-200 rounded-lg px-4 py-2 mb-4 text-center"><%= error %></div>

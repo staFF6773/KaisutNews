@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body class="min-h-screen text-gray-200">
+  <%- include('../nav.ejs') %>
   <div class="max-w-2xl mx-auto py-12 px-4">
     <h1 class="text-3xl font-extrabold mb-2 title-gradient"><%= anime.title %></h1>
     <div class="text-xs text-gray-500 mb-6"><%= anime.date %></div>
@@ -17,6 +18,11 @@
     <div class="text-center">
       <a href="/" class="btn-main inline-block px-5 py-2 rounded-lg font-semibold shadow transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-900">Volver a la lista</a>
     </div>
+    <% if (typeof user !== 'undefined' && user.isAdmin) { %>
+      <form method="POST" action="/news/<%= anime.id %>/delete" onsubmit="return confirm('¿Seguro que quieres borrar esta noticia?');">
+        <button type="submit" class="btn-main mt-4 px-4 py-2 rounded-md font-semibold">Borrar noticia</button>
+      </form>
+    <% } %>
   </div>
   <%- include('../footer.ejs') %>
 </body>

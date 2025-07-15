@@ -29,11 +29,21 @@ app.use(session({
 
 // Middleware para exponer el usuario actual a las vistas EJS
 app.use((req, res, next) => {
-  res.locals.user = {
-    id: req.session.userId,
-    isAdmin: req.session.isAdmin
-  };
-  next();
+  if (req.session.userId) {
+    const db = new sqlite3.Database(join(process.cwd(), "db", "anime_news.db"));
+    db.get("SELECT username, is_admin, avatar FROM users WHERE id = ?", [req.session.userId], (err, row: any) => {
+      res.locals.user = {
+        id: req.session.userId,
+        isAdmin: row && row.is_admin ? !!row.is_admin : false,
+        username: row && row.username ? row.username : null,
+        avatar: row && row.avatar ? row.avatar : "avatar1.webp"
+      };
+      next();
+    });
+  } else {
+    res.locals.user = null;
+    next();
+  }
 });
 
 // Rutas de autenticación
@@ -68,7 +78,14 @@ const db = new sqlite3.Database(join(dbDir, "anime_news.db"), (err) => {
     username TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
     is_admin INTEGER NOT NULL DEFAULT 0
-  )`);
+  )`, () => {
+    // Asegura que la columna avatar exista
+    db.all("PRAGMA table_info(users)", (err, columns) => {
+      if (columns && Array.isArray(columns) && !columns.some((col: any) => col.name === 'avatar')) {
+        db.run("ALTER TABLE users ADD COLUMN avatar TEXT");
+      }
+    });
+  });
 });
 
 app.listen(PORT, () => {

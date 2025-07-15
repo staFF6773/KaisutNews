@@ -6,8 +6,9 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="/styles.css">
 </head>
-<body class="min-h-screen text-gray-200 flex items-center justify-center">
-  <div class="w-full max-w-md bg-[#181a20] rounded-2xl shadow-lg p-8 mt-12">
+<body class="min-h-screen text-gray-200">
+  <%- include('../nav.ejs') %>
+  <div class="mt-24 w-full max-w-md mx-auto">
     <h1 class="text-3xl font-extrabold mb-6 text-center tracking-tight title-gradient">Registro</h1>
     <% if (error) { %>
       <div class="error bg-red-900/80 text-red-200 rounded-lg px-4 py-2 mb-4 text-center"><%= error %></div>
@@ -21,6 +22,17 @@
         <span class="block mb-1 font-semibold">Contraseña</span>
         <input type="password" name="password" required class="input-dark w-full" placeholder="Crea una contraseña">
       </label>
+      <div>
+        <span class="block mb-2 font-semibold">Elige tu avatar:</span>
+        <div class="grid grid-cols-4 gap-4 max-w-xs mx-auto">
+          <% for(let i=1; i<=4; i++) { %>
+            <label class="flex flex-col items-center cursor-pointer group">
+              <input type="radio" name="avatar" value="avatar<%= i %>.webp" class="sr-only peer" <%= i === 1 ? 'checked' : '' %>>
+              <img src="/avatars/avatar<%= i %>.webp" alt="Avatar <%= i %>" class="w-16 h-16 object-cover rounded-full border-4 border-gray-400 group-hover:border-blue-400 peer-checked:border-blue-600 peer-checked:shadow-lg transition-all duration-200">
+            </label>
+          <% } %>
+        </div>
+      </div>
       <button type="submit" class="btn-main w-full py-2 rounded-lg font-semibold shadow transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-900">Registrarse</button>
     </form>
     <p class="mt-6 text-center text-gray-400">¿Ya tienes cuenta? <a href="/login" class="text-blue-400 hover:underline">Inicia sesión</a></p>
