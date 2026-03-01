@@ -3,7 +3,7 @@
     "@types/express": "^5.0.3",
     "@types/node": "^24.0.13",
     "@types/sqlite3": "^5.1.0",
-    "ejs": "^3.1.10",
+    "ejs": "^4.0.0",
     "express": "^5.0.0",
     "sqlite3": "^5.1.2",
     "multer": "^1.4.5-lts.1"
