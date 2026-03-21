@@ -21,14 +21,52 @@ db.run(`CREATE TABLE IF NOT EXISTS pending_news (
   FOREIGN KEY(author_id) REFERENCES users(id)
 )`);
 
+// Crear tabla de comentarios si no existe
+db.run(`CREATE TABLE IF NOT EXISTS comments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  news_id INTEGER NOT NULL,
+  user_id INTEGER NOT NULL,
+  content TEXT NOT NULL,
+  date TEXT NOT NULL,
+  FOREIGN KEY(news_id) REFERENCES news(id) ON DELETE CASCADE,
+  FOREIGN KEY(user_id) REFERENCES users(id)
+)`);
+
+
 // Ruta principal: lista de noticias
 router.get("/", (req, res) => {
-  db.all("SELECT * FROM news ORDER BY date DESC", (err, news) => {
-    if (err) return res.status(500).send("Error en la base de datos");
-    const destacada = news.length > 0 ? news[0] : null;
-    const ultimas = news.length > 1 ? news.slice(1) : [];
-    res.render("anime/index", { destacada, ultimas });
-  });
+  db.all(
+    `SELECT news.*, users.username as author, users.avatar as author_avatar
+     FROM news LEFT JOIN users ON news.author_id = users.id
+     ORDER BY news.date DESC`,
+    (err, news) => {
+      if (err) return res.status(500).send("Error en la base de datos");
+      const destacada = news.length > 0 ? news[0] : null;
+      const ultimas = news.length > 1 ? news.slice(1) : [];
+      res.render("anime/index", { destacada, ultimas });
+    }
+  );
+});
+
+// Perfil público de usuario
+router.get("/user/:username", (req, res) => {
+  const { username } = req.params;
+  db.get(
+    "SELECT id, username, avatar, is_admin FROM users WHERE username = ?",
+    [username],
+    (err, author: any) => {
+      if (err) return res.status(500).send("Error en la base de datos");
+      if (!author) return res.status(404).render("anime/404", { message: "Usuario no encontrado" });
+      db.all(
+        `SELECT * FROM news WHERE author_id = ? ORDER BY date DESC`,
+        [author.id],
+        (err2, articles) => {
+          if (err2) return res.status(500).send("Error en la base de datos");
+          res.render("user/profile", { author, articles });
+        }
+      );
+    }
+  );
 });
 
 // Formulario para nueva noticia (usuarios normales)
@@ -112,9 +150,10 @@ router.get("/new", requireAdmin, (req, res) => {
 router.post("/new", requireAdmin, (req, res) => {
   const { title, content, image } = req.body;
   const date = new Date().toISOString();
+  const author_id = req.session.userId;
   db.run(
-    "INSERT INTO news (title, content, date, image) VALUES (?, ?, ?, ?)",
-    [title, content, date, image || null],
+    "INSERT INTO news (title, content, date, image, author_id) VALUES (?, ?, ?, ?, ?)",
+    [title, content, date, image || null, author_id],
     (err) => {
       if (err) return res.status(500).send("Error al guardar la noticia");
       res.redirect("/");
@@ -122,18 +161,75 @@ router.post("/new", requireAdmin, (req, res) => {
   );
 });
 
-// Mostrar detalle de una noticia con autor y avatar
+// Búsqueda de noticias
+router.get("/search", (req, res) => {
+  const q = (req.query.q as string || "").trim();
+  if (!q) return res.redirect("/");
+
+  const pattern = `%${q}%`;
+  db.all(
+    `SELECT news.*, users.username as author
+     FROM news LEFT JOIN users ON news.author_id = users.id
+     WHERE news.title LIKE ? OR news.content LIKE ?
+     ORDER BY date DESC`,
+    [pattern, pattern],
+    (err, results) => {
+      if (err) return res.status(500).send("Error en la base de datos");
+      res.render("anime/search", { query: q, results });
+    }
+  );
+});
+
+// Mostrar detalle de una noticia con autor, avatar y comentarios
 router.get("/news/:id", (req, res) => {
   const { id } = req.params;
   db.get(
-    `SELECT news.*, users.username as author, users.avatar as author_avatar FROM news LEFT JOIN users ON news.author_id = users.id WHERE news.id = ?`,
+    `SELECT news.*, users.username as author, users.avatar as author_avatar
+     FROM news LEFT JOIN users ON news.author_id = users.id
+     WHERE news.id = ?`,
     [id],
     (err, noticia) => {
       if (err) return res.status(500).send("Error en la base de datos");
       if (!noticia) return res.status(404).send("Noticia no encontrada");
-      res.render("anime/detail", { anime: noticia });
+      db.all(
+        `SELECT comments.*, users.username as commenter, users.avatar as commenter_avatar
+         FROM comments
+         JOIN users ON comments.user_id = users.id
+         WHERE comments.news_id = ?
+         ORDER BY comments.date ASC`,
+        [id],
+        (err2, comments) => {
+          if (err2) return res.status(500).send("Error en la base de datos");
+          res.render("anime/detail", { anime: noticia, comments: comments || [] });
+        }
+      );
     }
   );
+});
+
+// Publicar comentario (requiere autenticación)
+router.post("/news/:id/comment", requireAuth, (req, res) => {
+  const { id } = req.params;
+  const content = (req.body.content || "").trim();
+  if (!content) return res.redirect(`/news/${id}`);
+  const date = new Date().toISOString();
+  db.run(
+    "INSERT INTO comments (news_id, user_id, content, date) VALUES (?, ?, ?, ?)",
+    [id, req.session.userId, content, date],
+    (err) => {
+      if (err) return res.status(500).send("Error al guardar el comentario");
+      res.redirect(`/news/${id}#comentarios`);
+    }
+  );
+});
+
+// Borrar comentario (solo admin)
+router.post("/news/:id/comment/:cid/delete", requireAdmin, (req, res) => {
+  const { id, cid } = req.params;
+  db.run("DELETE FROM comments WHERE id = ?", [cid], (err) => {
+    if (err) return res.status(500).send("Error al borrar el comentario");
+    res.redirect(`/news/${id}#comentarios`);
+  });
 });
 
 // Borrar noticia (solo admin)

@@ -1,11 +1,15 @@
 {
   "dependencies": {
+    "@types/bcrypt": "^6.0.0",
     "@types/express": "^5.0.3",
+    "@types/express-session": "^1.18.2",
     "@types/node": "^24.0.13",
     "@types/sqlite3": "^5.1.0",
+    "bcrypt": "^6.0.0",
     "ejs": "^5.0.0",
     "express": "^5.0.0",
-    "sqlite3": "^6.0.0",
-    "multer": "^1.4.5-lts.1"
+    "express-session": "^1.19.0",
+    "multer": "^1.4.5-lts.1",
+    "sqlite3": "^6.0.0"
   }
 }

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Búsqueda: "<%= query %>" — KaisutNews</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+  <%- include('../nav.ejs') %>
+
+  <%
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      const d = new Date(dateStr);
+      return d.toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric' });
+    }
+    function readingTime(text) {
+      if (!text) return 1;
+      return Math.max(1, Math.round(text.trim().split(/\s+/).length / 200));
+    }
+    function getBadge(title, content) {
+      const t = ((title||'')+' '+(content||'')).toLowerCase();
+      if (t.includes('manga'))                            return 'Manga';
+      if (t.includes('breaking')||t.includes('urgente')) return 'Breaking';
+      if (t.includes('comunidad')||t.includes('fan'))    return 'Comunidad';
+      return 'Anime';
+    }
+
+    /* Highlights matching text with <mark> */
+    function highlight(text, q) {
+      if (!text || !q) return text || '';
+      const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return text.replace(new RegExp(`(${escaped})`, 'gi'),
+        '<mark style="background:transparent;color:var(--text-1);text-decoration:underline;text-underline-offset:2px;">$1</mark>');
+    }
+  %>
+
+  <main class="page-wrapper" style="padding-top:2.5rem;padding-bottom:5rem;">
+
+    <!-- Header -->
+    <div style="margin-bottom:2.25rem;" class="fade-in fade-in-1">
+      <div class="section-eyebrow">Búsqueda</div>
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-top:0.35rem;">
+        <h1 style="font-size:1.5rem;font-weight:800;letter-spacing:-0.035em;color:var(--text-1);margin:0;">
+          "<%= query %>"
+        </h1>
+        <span style="font-size:0.8125rem;color:var(--text-5);">
+          <%= results && results.length ? results.length : 'Sin' %>
+          resultado<%= results && results.length === 1 ? '' : 's' %>
+        </span>
+      </div>
+    </div>
+
+    <div style="height:1px;background:var(--border);margin-bottom:1.75rem;"></div>
+
+    <!-- Search bar (repeat for easy re-search) -->
+    <form action="/search" method="GET" style="margin-bottom:2rem;display:flex;gap:0.5rem;" class="fade-in fade-in-2">
+      <div style="position:relative;flex:1;max-width:480px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
+          style="position:absolute;left:0.7rem;top:50%;transform:translateY(-50%);color:var(--text-5);pointer-events:none;">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input
+          type="text"
+          name="q"
+          value="<%= query %>"
+          placeholder="Buscar noticias…"
+          class="form-input"
+          style="padding-left:2.2rem;"
+          autofocus
+        />
+      </div>
+      <button type="submit" class="btn-primary">Buscar</button>
+    </form>
+
+    <!-- Results -->
+    <% if (results && results.length > 0) { %>
+    <div class="feed-list fade-in fade-in-3">
+      <% results.forEach(function(news, idx) {
+        const fb   = getBadge(news.title, news.content);
+        const fr   = readingTime(news.content);
+        const excerpt = news.content ? news.content.slice(0, 140) + (news.content.length > 140 ? '…' : '') : '';
+      %>
+      <a href="/news/<%= news.id %>" class="feed-item">
+        <span class="feed-num"><%= String(idx + 1).padStart(2, '0') %></span>
+
+        <% if (news.image) { %>
+          <img src="<%= news.image %>" alt="<%= news.title %>" class="feed-thumb" />
+        <% } else { %>
+          <div class="feed-thumb-placeholder">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+        <% } %>
+
+        <div class="feed-body">
+          <div class="feed-meta">
+            <span class="badge"><%= fb %></span>
+            <span class="read-time">
+              <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <%= fr %> min
+            </span>
+          </div>
+          <h3 class="feed-title"><%- highlight(news.title, query) %></h3>
+          <p style="font-size:0.78rem;color:var(--text-5);margin:0.25rem 0 0;line-height:1.55;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;">
+            <%- highlight(excerpt, query) %>
+          </p>
+          <div class="feed-date"><%= formatDate(news.date) %><% if (news.author) { %> · <%= news.author %><% } %></div>
+        </div>
+
+        <div class="feed-arrow">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </a>
+      <% }); %>
+    </div>
+
+    <% } else { %>
+    <!-- Empty state -->
+    <div style="padding:4rem 1.5rem;text-align:center;border:1px solid var(--border);border-radius:var(--radius-xl);background:var(--surface);" class="fade-in fade-in-3">
+      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="color:var(--text-5);margin-bottom:0.9rem;">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <p style="font-size:0.9375rem;font-weight:600;color:var(--text-3);margin:0 0 0.35rem;">Sin resultados para "<%= query %>"</p>
+      <p style="font-size:0.8125rem;color:var(--text-5);margin:0;">Intenta con otras palabras clave.</p>
+      <a href="/" class="btn-ghost" style="margin-top:1.25rem;display:inline-flex;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Volver al inicio
+      </a>
+    </div>
+    <% } %>
+
+  </main>
+
+  <%- include('../footer.ejs') %>
+</body>
+</html>

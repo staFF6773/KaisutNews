@@ -2,76 +2,277 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Noticias de Anime</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KaisutNews — Noticias de Anime</title>
+  <meta name="description" content="Las últimas noticias de anime y manga, curadas por la comunidad.">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="/styles.css">
 </head>
-<body class="min-h-screen text-gray-200">
+<body>
+
   <%- include('../nav.ejs') %>
-  <% 
-    function formatDate(dateString) {
-      const date = new Date(dateString);
-      const day = String(date.getDate()).padStart(2, '0');
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const year = date.getFullYear();
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      return `${day}/${month}/${year} ${hours}:${minutes}`;
+
+  <%
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      const d = new Date(dateStr);
+      return d.toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric' });
+    }
+
+    function readingTime(text) {
+      if (!text) return 1;
+      return Math.max(1, Math.round(text.trim().split(/\s+/).length / 200));
+    }
+
+    function getBadge(title, content) {
+      const t = ((title || '') + ' ' + (content || '')).toLowerCase();
+      if (t.includes('manga'))                            return 'Manga';
+      if (t.includes('breaking') || t.includes('urgente')) return 'Breaking';
+      if (t.includes('comunidad') || t.includes('fan'))  return 'Comunidad';
+      return 'Anime';
     }
   %>
-  <div class="max-w-2xl mx-auto py-12 px-4">
+
+  <main class="page-wrapper" style="padding-top:2.5rem; padding-bottom:5rem;">
+
+    <!-- ═══ HERO ARTICLE ═══ -->
     <% if (destacada) { %>
-      <!-- Banner horizontal compacto para noticia destacada -->
-      <div class="w-full mb-10 relative min-h-[180px] md:min-h-[220px] rounded-2xl overflow-hidden shadow-2xl flex items-center justify-start">
-        <% if (destacada.image) { %>
-          <img src="<%= destacada.image %>" alt="Portada destacada" class="absolute inset-0 w-full h-full object-cover z-0" />
-        <% } else { %>
-          <div class="absolute inset-0 w-full h-full bg-gray-700 z-0"></div>
-        <% } %>
-        <!-- Overlay degradado horizontal -->
-        <div class="absolute inset-0 z-10 bg-gradient-to-r from-blue-900/90 via-blue-800/70 to-transparent"></div>
-        <div class="relative z-20 flex flex-col items-start justify-center h-full w-full max-w-2xl pl-6 md:pl-10 py-5 gap-2">
-          <a href="/news/<%= destacada.id %>" class="text-xl md:text-2xl font-bold text-white mb-1 leading-tight drop-shadow-lg hover:text-blue-200 transition-colors text-left">
-            <%= destacada.title %>
-          </a>
-          <p class="text-gray-200 text-base md:text-lg max-w-xl mb-1 line-clamp-2 drop-shadow text-left" style="text-shadow:0 2px 8px #000a;">
-            <%= destacada.content.length > 90 ? destacada.content.slice(0,90) + '...' : destacada.content %>
-          </p>
-          <a href="/news/<%= destacada.id %>" class="inline-block px-5 py-2 rounded-full font-semibold text-base bg-white/90 text-blue-900 shadow hover:bg-white transition-all mt-1">Leer noticia</a>
+    <%
+      const hBadge = getBadge(destacada.title, destacada.content);
+      const hRT    = readingTime(destacada.content);
+    %>
+    <section style="margin-bottom:3rem;" class="fade-in fade-in-1">
+      <div class="section-eyebrow">Destacado</div>
+      <div class="section-rule"></div>
+
+      <a href="/news/<%= destacada.id %>" class="hero-article" style="display:grid;text-decoration:none;color:inherit;">
+        <!-- Image -->
+        <div class="hero-image-wrap">
+          <% if (destacada.image) { %>
+            <img src="<%= destacada.image %>" alt="<%= destacada.title %>" />
+          <% } else { %>
+            <div class="hero-image-placeholder">
+              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            </div>
+          <% } %>
         </div>
-      </div>
-    <% } %>
-    <h3 class="text-xl font-bold mb-6 mt-2 title-gradient">Últimas noticias</h3>
-    <ul class="divide-y divide-gray-800">
-      <% if (ultimas && ultimas.length) { %>
-        <% ultimas.forEach(function(anime, idx) { %>
-          <li class="flex items-center gap-4 py-5">
-            <div class="flex-shrink-0 w-24 h-24 bg-[#23263a] flex items-center justify-center rounded-lg overflow-hidden">
-              <% if (anime.image) { %>
-                <img src="<%= anime.image %>" alt="Portada" class="object-cover w-full h-full" />
-              <% } else { %>
-                <div class="flex items-center justify-center w-full h-full bg-gray-700 text-gray-400 text-2xl font-bold select-none">?</div>
+
+        <!-- Body -->
+        <div class="hero-body">
+          <div>
+            <div class="hero-meta">
+              <span class="badge"><%= hBadge %></span>
+              <span class="read-time">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <%= hRT %> min
+              </span>
+            </div>
+            <h1 class="hero-title"><%= destacada.title %></h1>
+            <p class="hero-excerpt">
+              <%= destacada.content && destacada.content.length > 200
+                ? destacada.content.slice(0, 200) + '…'
+                : destacada.content %>
+            </p>
+          </div>
+          <div class="hero-footer">
+            <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+              <span class="hero-date"><%= formatDate(destacada.date) %></span>
+              <% if (destacada.author) { %>
+                <span style="color:var(--text-5);font-size:0.73rem;">·</span>
+                <span
+                  role="link"
+                  tabindex="0"
+                  onclick="event.preventDefault();event.stopPropagation();window.location='/user/<%= encodeURIComponent(destacada.author) %>'"
+                  onkeydown="if(event.key==='Enter'){event.stopPropagation();window.location='/user/<%= encodeURIComponent(destacada.author) %>'}"
+                  style="display:inline-flex;align-items:center;gap:0.4rem;cursor:pointer;font-size:0.73rem;font-weight:500;color:var(--text-5);transition:color 0.12s;"
+                  onmouseover="this.style.color='var(--text-3)'"
+                  onmouseout="this.style.color='var(--text-5)'"
+                >
+                  <% if (destacada.author_avatar) { %>
+                    <img src="/avatars/<%= destacada.author_avatar %>" alt="" style="width:16px;height:16px;border-radius:50%;object-fit:cover;border:1px solid var(--border);" />
+                  <% } %>
+                  <%= destacada.author %>
+                </span>
               <% } %>
             </div>
-            <div class="flex-1 min-w-0">
-              <a href="/news/<%= anime.id %>" class="text-lg font-bold text-gray-100 hover:text-blue-400 block"><%= anime.title %></a>
-              <div class="text-xs text-gray-400 mt-1 mb-2"><%= formatDate(anime.date) %></div>
+            <span class="hero-cta">
+              Leer artículo
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </span>
+          </div>
+        </div>
+      </a>
+    </section>
+    <% } %>
+
+    <!-- ═══ BENTO CONTENT GRID ═══ -->
+    <% if (ultimas && ultimas.length) { %>
+    <section style="margin-bottom:3rem;" class="fade-in fade-in-2">
+      <div class="section-eyebrow">Recientes</div>
+      <div class="section-rule"></div>
+
+      <div class="content-grid">
+
+        <!-- First card: large (8 cols) -->
+        <% if (ultimas[0]) {
+          const c = ultimas[0];
+          const b = getBadge(c.title, c.content);
+          const r = readingTime(c.content);
+        %>
+        <a href="/news/<%= c.id %>" class="grid-card col-8" style="border-bottom:none;">
+          <% if (c.image) { %>
+            <div class="card-img-wrap"><img src="<%= c.image %>" alt="<%= c.title %>" /></div>
+          <% } else { %>
+            <div class="card-img-wrap"><div class="card-img-placeholder">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            </div></div>
+          <% } %>
+          <div class="card-meta">
+            <span class="badge"><%= b %></span>
+            <span class="read-time">
+              <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <%= r %> min
+            </span>
+          </div>
+          <h3 class="card-title"><%= c.title %></h3>
+          <p class="card-excerpt"><%= c.content && c.content.length > 120 ? c.content.slice(0,120)+'…' : c.content %></p>
+          <div class="card-date"><%= formatDate(c.date) %></div>
+        </a>
+        <% } %>
+
+        <!-- Stack of small cards (4 cols) -->
+        <div style="grid-column:span 4;display:contents;">
+          <% [1,2].forEach(function(i) {
+            if (!ultimas[i]) return;
+            const c = ultimas[i];
+            const b = getBadge(c.title, c.content);
+            const r = readingTime(c.content);
+          %>
+          <a href="/news/<%= c.id %>" class="grid-card col-4" style="<%= i===1 ? '' : 'border-top:none;' %>">
+            <div class="card-meta">
+              <span class="badge"><%= b %></span>
+              <span class="read-time">
+                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <%= r %> min
+              </span>
             </div>
-            <a href="/news/<%= anime.id %>" class="btn-main px-4 py-1 rounded-md font-medium text-sm shadow-sm transition-all hover:bg-blue-900 hover:text-white ml-auto flex-shrink-0">Leer más</a>
-          </li>
+            <h3 class="card-title"><%= c.title %></h3>
+            <div class="card-date"><%= formatDate(c.date) %></div>
+          </a>
+          <% }); %>
+        </div>
+
+        <!-- Bottom row: three equal cards -->
+        <% [3,4,5].forEach(function(i) {
+          if (!ultimas[i]) return;
+          const c = ultimas[i];
+          const b = getBadge(c.title, c.content);
+          const r = readingTime(c.content);
+        %>
+        <a href="/news/<%= c.id %>" class="grid-card col-4-split" style="
+          grid-column: span 4;
+          border-top: none;
+          ">
+          <% if (c.image) { %>
+            <div class="card-img-wrap" style="aspect-ratio:3/2;"><img src="<%= c.image %>" alt="<%= c.title %>" /></div>
+          <% } %>
+          <div class="card-meta">
+            <span class="badge"><%= b %></span>
+            <span class="read-time">
+              <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <%= r %> min
+            </span>
+          </div>
+          <h3 class="card-title"><%= c.title %></h3>
+          <div class="card-date"><%= formatDate(c.date) %></div>
+        </a>
         <% }); %>
+
+      </div><!-- /content-grid -->
+    </section>
+    <% } %>
+
+    <!-- ═══ ALL NEWS FEED ═══ -->
+    <section class="fade-in fade-in-3">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
+        <div>
+          <div class="section-eyebrow">Todas las noticias</div>
+        </div>
+        <% if (user && user.isAdmin) { %>
+          <a href="/new" class="btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nueva noticia
+          </a>
+        <% } else if (user) { %>
+          <a href="/submit" class="btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Subir noticia
+          </a>
+        <% } %>
+      </div>
+      <div class="section-rule"></div>
+
+      <% if (ultimas && ultimas.length) { %>
+      <div class="feed-list">
+        <% ultimas.forEach(function(news, idx) {
+          const fb = getBadge(news.title, news.content);
+          const fr = readingTime(news.content);
+        %>
+        <a href="/news/<%= news.id %>" class="feed-item">
+          <span class="feed-num"><%= String(idx + 1).padStart(2, '0') %></span>
+
+          <% if (news.image) { %>
+            <img src="<%= news.image %>" alt="<%= news.title %>" class="feed-thumb" />
+          <% } else { %>
+            <div class="feed-thumb-placeholder">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            </div>
+          <% } %>
+
+          <div class="feed-body">
+            <div class="feed-meta">
+              <span class="badge"><%= fb %></span>
+              <span class="read-time">
+                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <%= fr %> min
+              </span>
+            </div>
+            <h3 class="feed-title"><%= news.title %></h3>
+            <div class="feed-date">
+              <%= formatDate(news.date) %>
+              <% if (news.author) { %>
+                <span style="margin:0 2px;">·</span>
+                <span
+                  role="link"
+                  tabindex="0"
+                  onclick="event.preventDefault();event.stopPropagation();window.location='/user/<%= encodeURIComponent(news.author) %>'"
+                  onkeydown="if(event.key==='Enter'){event.stopPropagation();window.location='/user/<%= encodeURIComponent(news.author) %>'}"
+                  style="cursor:pointer;transition:color 0.12s;"
+                  onmouseover="this.style.color='var(--text-4)'"
+                  onmouseout="this.style.color=''"
+                >
+                  <% if (news.author_avatar) { %><img src="/avatars/<%= news.author_avatar %>" alt="" style="width:13px;height:13px;border-radius:50%;object-fit:cover;display:inline;vertical-align:-2px;margin-right:3px;border:1px solid var(--border);" /><% } %><%= news.author %>
+                </span>
+              <% } %>
+            </div>
+          </div>
+
+          <div class="feed-arrow">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </a>
+        <% }); %>
+      </div>
       <% } else { %>
-        <li class="text-center text-gray-600 italic py-8">No hay noticias disponibles.</li>
+      <div style="padding:4rem 1.5rem;text-align:center;border:1px solid var(--border);border-radius:var(--radius-xl);background:var(--surface);">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="color:var(--text-5);margin-bottom:0.75rem;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <p style="color:var(--text-5);font-size:0.875rem;">No hay noticias aún.</p>
+      </div>
       <% } %>
-    </ul>
-    <div class="flex justify-end mt-8">
-      <% if (user && user.isAdmin) { %>
-        <a href="/new" class="btn-main px-5 py-2 rounded-lg font-semibold shadow transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-900">+ Nueva noticia</a>
-      <% } else if (user) { %>
-        <a href="/submit" class="btn-main px-5 py-2 rounded-lg font-semibold shadow transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-900">+ Subir noticia de comunidad</a>
-      <% } %>
-    </div>
-  </div>
+    </section>
+
+  </main>
+
   <%- include('../footer.ejs') %>
 </body>
-</html> 
+</html>

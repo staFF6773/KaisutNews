@@ -1,55 +1,91 @@
-<nav class="glass flex justify-between items-center py-4 px-6 mb-8 border-b border-gray-800/60 rounded-b-xl shadow-lg mx-auto max-w-2xl">
-  <div class="flex items-center gap-8">
-    <a href="/" class="font-bold text-xl title-gradient">KaisutNews</a>
-    <ul class="flex gap-4 items-center">
-      <li><a href="/" class="hover:text-blue-400 transition-colors">Inicio</a></li>
+<nav class="nav-float">
+  <div class="nav-inner">
+    <!-- Brand -->
+    <a href="/" class="nav-brand">KaisutNews</a>
+
+    <!-- Center Links -->
+    <ul class="nav-links nav-center" id="nav-center">
+      <li><a href="/">Inicio</a></li>
       <% if (user && user.isAdmin) { %>
-        <li><a href="/new" class="hover:text-blue-400 transition-colors">Nueva noticia</a></li>
+        <li><a href="/new">Nueva noticia</a></li>
       <% } else if (user) { %>
-        <li><a href="/submit" class="hover:text-blue-400 transition-colors">Subir noticia de comunidad</a></li>
+        <li><a href="/submit">Comunidad</a></li>
       <% } %>
     </ul>
-  </div>
-  <div class="relative flex items-center gap-4">
-    <% if (!user) { %>
-      <a href="/login" class="btn-main px-4 py-1 rounded-full font-semibold shadow hover:bg-blue-900 transition-all">Iniciar sesión</a>
-    <% } else { %>
-      <button id="user-avatar-btn" type="button" class="w-10 h-10 rounded-full bg-blue-800 flex items-center justify-center text-lg font-bold text-white focus:outline-none focus:ring-2 focus:ring-blue-900 overflow-hidden">
-        <% if (user && user.avatar) { %>
-          <img src="/avatars/<%= user.avatar %>" alt="Avatar" class="w-10 h-10 object-cover rounded-full">
-        <% } else { %>
-          <%= user && user.username ? user.username.charAt(0).toUpperCase() : '?' %>
-        <% } %>
-      </button>
-      <div id="user-modal" class="hidden absolute right-0 mt-16 w-44 bg-[#181a20] border border-gray-800 rounded-xl shadow-lg py-2 z-50">
-        <div class="px-4 py-2 text-gray-300 font-semibold border-b border-gray-700">
-          <%= user && user.username ? user.username : '' %>
+
+    <!-- Search -->
+    <form class="nav-search" id="nav-search" action="/search" method="GET" role="search">
+      <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input type="text" name="q" placeholder="Buscar…" aria-label="Buscar noticias" />
+    </form>
+
+    <!-- Actions -->
+    <div class="nav-actions">
+      <% if (!user) { %>
+        <a href="/login" class="btn-login">Acceder</a>
+      <% } else { %>
+        <div style="position:relative;">
+          <button id="user-avatar-btn" type="button" class="avatar-btn" aria-label="Menú de usuario">
+            <% if (user && user.avatar) { %>
+              <img src="/avatars/<%= user.avatar %>" alt="Avatar" />
+            <% } else { %>
+              <%= user && user.username ? user.username.charAt(0).toUpperCase() : '?' %>
+            <% } %>
+          </button>
+          <div id="user-modal" class="user-dropdown" style="display:none;">
+            <div class="dropdown-header"><%= user && user.username ? user.username : '' %></div>
+            <% if (user && user.isAdmin) { %>
+              <a href="/admin/users">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="display:inline;margin-right:6px;vertical-align:-1px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Admin
+              </a>
+            <% } %>
+            <form action="/logout" method="POST" style="margin:0;">
+              <button type="submit">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="display:inline;margin-right:6px;vertical-align:-1px"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Salir
+              </button>
+            </form>
+          </div>
         </div>
-        <% if (user && user.isAdmin) { %>
-          <a href="/admin/users" class="block px-4 py-2 text-gray-200 hover:bg-blue-900 rounded transition">Admin</a>
-        <% } %>
-        <form action="/logout" method="POST" class="m-0">
-          <button type="submit" class="w-full text-left px-4 py-2 text-gray-200 hover:bg-blue-900 rounded transition bg-transparent border-none cursor-pointer">Salir</button>
-        </form>
-      </div>
-      <script>
-        const btn = document.getElementById('user-avatar-btn');
-        const modal = document.getElementById('user-modal');
-        if(btn && modal) {
-          btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            modal.classList.toggle('hidden');
-          });
-          document.addEventListener('click', function(e) {
-            if (!modal.classList.contains('hidden')) {
-              modal.classList.add('hidden');
-            }
-          });
-          modal.addEventListener('click', function(e) {
-            e.stopPropagation();
-          });
-        }
-      </script>
+      <% } %>
+
+      <button class="nav-hamburger" id="nav-hamburger" aria-label="Menú">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile -->
+  <div class="nav-mobile" id="nav-mobile">
+    <a href="/">Inicio</a>
+    <% if (user && user.isAdmin) { %>
+      <a href="/new">Nueva noticia</a>
+    <% } else if (user) { %>
+      <a href="/submit">Comunidad</a>
+    <% } %>
+    <% if (!user) { %>
+      <a href="/login">Acceder</a>
     <% } %>
   </div>
-</nav> 
+</nav>
+
+<script>
+  const hamb = document.getElementById('nav-hamburger');
+  const mob  = document.getElementById('nav-mobile');
+  if (hamb && mob) {
+    hamb.addEventListener('click', () => mob.classList.toggle('open'));
+  }
+  const avBtn    = document.getElementById('user-avatar-btn');
+  const avModal  = document.getElementById('user-modal');
+  if (avBtn && avModal) {
+    avBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      avModal.style.display = avModal.style.display === 'none' ? 'block' : 'none';
+    });
+    document.addEventListener('click', () => { avModal.style.display = 'none'; });
+    avModal.addEventListener('click', e => e.stopPropagation());
+  }
+</script>
