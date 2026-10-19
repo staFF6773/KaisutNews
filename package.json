@@ -6,7 +6,7 @@
     "@types/node": "^24.0.13",
     "@types/sqlite3": "^5.1.0",
     "bcrypt": "^6.0.0",
-    "ejs": "^5.0.0",
+    "ejs": "^7.0.0",
     "express": "^5.0.0",
     "express-session": "^1.19.0",
     "multer": "^2.0.0",
